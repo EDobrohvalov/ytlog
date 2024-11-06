@@ -1,9 +1,11 @@
 package persistence
 
 import (
+	"errors"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"time"
 	"ytlog/internal/config"
 )
 
@@ -18,7 +20,7 @@ func NewDatabase(cfg *config.Config) *Database {
 }
 
 func (db *Database) CreateTables() error {
-	err := db.AutoMigrate(&User{}, &Issue{}, &IssueLog{})
+	err := db.AutoMigrate(&User{}, &Issue{}, &IssueLog{}, &SyncLog{})
 	return err
 }
 
@@ -40,4 +42,15 @@ func (db *Database) SaveIssueLog(items *[]IssueLog) {
 	db.Clauses(clause.OnConflict{
 		DoNothing: true,
 	}).Create(&items)
+}
+
+func (db *Database) GetLastSync() SyncLog {
+	var syncTimestamp SyncLog
+	result := db.Last(&syncTimestamp)
+	errors.Is(result.Error, gorm.ErrRecordNotFound)
+	return syncTimestamp
+}
+
+func (db *Database) UpdateSync() {
+	db.Create(&SyncLog{UpdatedAt: time.Now()})
 }

@@ -3,6 +3,7 @@ package application
 import (
 	"github.com/k0kubun/go-ansi"
 	"github.com/schollz/progressbar/v3"
+	"time"
 	"ytlog/internal/config"
 	"ytlog/internal/persistence"
 	"ytlog/internal/ytracker"
@@ -35,8 +36,8 @@ func (app *Application) loadUsers() {
 	app.db.SaveUsers(users)
 }
 
-func (app *Application) loadIssues() *[]persistence.Issue {
-	ytIssues := app.yt.GetIssues()
+func (app *Application) loadIssues(lastSync time.Time) *[]persistence.Issue {
+	ytIssues := app.yt.GetIssues(lastSync)
 	issues := persistence.MapIssues(ytIssues)
 	app.db.SaveIssues(issues)
 	return issues
@@ -49,7 +50,6 @@ func (app *Application) loadIssueLog(issueKey string) {
 }
 
 func (app *Application) Run() {
-
 	bar := progressbar.NewOptions(-1,
 		progressbar.OptionSetWriter(ansi.NewAnsiStdout()),
 		progressbar.OptionEnableColorCodes(true))
@@ -58,10 +58,11 @@ func (app *Application) Run() {
 	app.loadUsers()
 
 	bar.Describe("[cyan][2/3][reset] Load [red]issues[reset]")
-	issues := app.loadIssues()
+	lastSync := app.db.GetLastSync()
+	issues := app.loadIssues(lastSync.UpdatedAt)
 	bar = progressbar.NewOptions(
 		len(*issues),
-		progressbar.OptionSetWriter(ansi.NewAnsiStdout()), //you should install "github.com/k0kubun/go-ansi"
+		progressbar.OptionSetWriter(ansi.NewAnsiStdout()),
 		progressbar.OptionEnableColorCodes(true),
 		progressbar.OptionSetDescription("[cyan][3/3][reset] Load [red]changes log[reset]"),
 	)
@@ -69,4 +70,5 @@ func (app *Application) Run() {
 		_ = bar.Add(1)
 		app.loadIssueLog(issue.Key)
 	}
+	app.db.UpdateSync()
 }

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 	"ytlog/internal/config"
 )
 
@@ -97,11 +98,11 @@ func (yt *YTracker) doRequest(method string, url string, body *[]byte) (*[]byte,
 	return &bodyBytes, pagesCount
 }
 
-func (yt *YTracker) GetIssues() *[]Issue {
+func (yt *YTracker) GetIssues(lastSync time.Time) *[]Issue {
 	url := yt.urlBase + "/issues/_search?page="
 
 	body := RequestBody{
-		Query: `Queue: ` + strings.Join(yt.cfg.Queues, ", ") + ` "Sort by": Updated DESC`,
+		Query: `Updated: >= "` + lastSync.Format("2006-01-02 15:04:05") + `" Queue: ` + strings.Join(yt.cfg.Queues, ", ") + ` "Sort by": Updated DESC`,
 	}
 
 	bodyBytes, _ := json.Marshal(body)

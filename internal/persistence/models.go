@@ -7,6 +7,7 @@ import (
 )
 
 type SyncLog struct {
+	UpdatedAt time.Time
 }
 
 type User struct {

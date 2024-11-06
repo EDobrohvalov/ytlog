@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -14,13 +15,14 @@ type Config struct {
 }
 
 func LoadFromJsonFile(configPath string, cfg *Config) error {
-	f, err := os.OpenFile(configPath, os.O_RDONLY|os.O_SYNC, 0)
+	jsonFile, err := os.Open(configPath)
 	if err != nil {
 		return fmt.Errorf("config file can not be opened: %s", err.Error())
 	}
-	defer f.Close()
+	defer jsonFile.Close()
 
-	err = json.NewDecoder(f).Decode(&cfg)
+	byteValue, _ := io.ReadAll(jsonFile)
+	err = json.Unmarshal(byteValue[3:], &cfg)
 	if err != nil {
 		return fmt.Errorf("config file parsing error: %s", err.Error())
 	}
