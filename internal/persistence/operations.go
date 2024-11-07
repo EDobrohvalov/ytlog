@@ -5,12 +5,18 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"gorm.io/gorm/schema"
 	"time"
 	"ytlog/internal/config"
 )
 
 func NewDatabase(cfg *config.Config) *Database {
-	db, err := gorm.Open(postgres.Open(cfg.ConnectionString), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(cfg.ConnectionString),
+		&gorm.Config{
+			NamingStrategy: schema.NamingStrategy{
+				TablePrefix:   "ytlog_",
+				SingularTable: false,
+			}})
 	if err != nil {
 		panic(err.Error())
 	}

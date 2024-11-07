@@ -119,7 +119,7 @@ func (yt *YTracker) GetIssues(lastSync time.Time) *[]Issue {
 }
 
 func (yt *YTracker) GetIssueChangelog(issueKey string) *[]IssueLog {
-	url := yt.urlBase + "/issues/" + issueKey + "/changelog?page="
+	url := yt.urlBase + "/issues/" + issueKey + "/changelog?perPage=100&page="
 
 	responseBody, pagesCount := yt.doRequest("GET", url+strconv.Itoa(1), nil)
 	result := unmarshall[IssueLog](responseBody)
